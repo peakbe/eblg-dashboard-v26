@@ -15,32 +15,80 @@ const EBLG = { lat:50.6374, lon:5.4432, runways:[
 
 let runwayAxisLayer = null;
 let runwayAxisArrow = null;
+let runwayAxisLabel = null;
+let runwayPlaneIcon = null;
 
 function drawRunwayAxis(runwayName, phase) {
-  if (runwayAxisLayer) {
-    map.removeLayer(runwayAxisLayer);
-  }
-// Flèche animée
-if (runwayAxisArrow) {
-  map.removeLayer(runwayAxisArrow);
-}
+  // Nettoyage des anciennes couches
+  if (runwayAxisLayer) map.removeLayer(runwayAxisLayer);
+  if (runwayAxisArrow) map.removeLayer(runwayAxisArrow);
+  if (runwayAxisLabel) map.removeLayer(runwayAxisLabel);
+  if (runwayPlaneIcon) map.removeLayer(runwayPlaneIcon);
 
-runwayAxisArrow = L.polylineDecorator([start, end], {
-  patterns: [
-    {
-      offset: '0%',
-      repeat: 50,
-      symbol: L.Symbol.arrowHead({
-        pixelSize: 12,
-        polygon: false,
-        pathOptions: {
-          color: color,
-          weight: 3
-        }
-      })
-    }
-  ]
-}).addTo(map);
+  // Coordonnées des seuils
+  const RW22 = [50.64594, 5.44375];
+  const RW04 = [50.65480, 5.46530];
+
+  let start, end;
+
+  if (runwayName === "22") {
+    start = RW22;
+    end = RW04;
+  } else {
+    start = RW04;
+    end = RW22;
+  }
+
+  // Couleur selon phase
+  const color = (phase === "Décollage") ? "#f97316" : "#60a5fa";
+
+  // Axe principal
+  runwayAxisLayer = L.polyline([start, end], {
+    color,
+    weight: 4,
+    opacity: 0.9,
+    dashArray: "10, 10"
+  }).addTo(map);
+
+  // Flèche animée
+  runwayAxisArrow = L.polylineDecorator([start, end], {
+    patterns: [
+      {
+        offset: '0%',
+        repeat: 50,
+        symbol: L.Symbol.arrowHead({
+          pixelSize: 12,
+          polygon: false,
+          pathOptions: {
+            color: color,
+            weight: 3
+          }
+        })
+      }
+    ]
+  }).addTo(map);
+
+  // Label au milieu
+  const midLat = (start[0] + end[0]) / 2;
+  const midLng = (start[1] + end[1]) / 2;
+
+  runwayAxisLabel = L.marker([midLat, midLng], {
+    icon: L.divIcon({
+      className: "runway-label",
+      html: `<div style="padding:4px 8px;background:white;border-radius:4px;border:1px solid #ccc;font-size:12px;">
+        ${phase}
+      </div>`
+    })
+  }).addTo(map);
+
+  // Icône avion au début
+  runwayPlaneIcon = L.marker(start, {
+    icon: L.divIcon({
+      className: "plane-icon",
+      html: `<div style="font-size:20px;">✈️</div>`
+    })
+  }).addTo(map);
+}
 
   // Coordonnées des seuils (à adapter si tu veux plus précis)
   const RW22 = [50.64594, 5.44375];
